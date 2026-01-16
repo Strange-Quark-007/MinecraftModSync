@@ -21,9 +21,10 @@ const checkMods = async () => {
   const allPromises = projectList?.map((project) => {
     return axios
       .get(
-        `${MODRINTH_BASE_URL_V2}/project/${project.Project_ID}/version?game_versions=["${gameVersion}"]&loaders=["${loader}"]`
+        `${MODRINTH_BASE_URL_V2}/project/${project.Project_ID}/version?game_versions=["${gameVersion}"]&loaders=["${loader}"]&include_changelog=false`
       )
       .then((res) => {
+        console.log(res.data);
         // Hacky way to check existence; catches error if trying to read undefined.
         try {
           const fileName = res.data[0].files[0].filename;

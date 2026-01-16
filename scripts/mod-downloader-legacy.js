@@ -28,7 +28,7 @@ const legacyDownload = () => {
   ConfigJSON.modsList_Modrinth.map((mod) => {
     axios
       .get(
-        `${MODRINTH_BASE_URL_V2}/project/${mod.Project_ID}/version?game_versions=["${gameVersion}"]&loaders=["${loader}"]`
+        `${MODRINTH_BASE_URL_V2}/project/${mod.Project_ID}/version?game_versions=["${gameVersion}"]&loaders=["${loader}"]&include_changelog=false`
       )
       .then((res) => {
         let fileName = res.data[0].files[0].filename;
