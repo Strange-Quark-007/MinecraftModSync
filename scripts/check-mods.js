@@ -24,7 +24,7 @@ const checkMods = async () => {
         `${MODRINTH_BASE_URL_V2}/project/${project.Project_ID}/version?game_versions=["${gameVersion}"]&loaders=["${loader}"]&include_changelog=false`
       )
       .then((res) => {
-        console.log(res.data);
+        // console.log(res.data);
         // Hacky way to check existence; catches error if trying to read undefined.
         try {
           const fileName = res.data[0].files[0].filename;
