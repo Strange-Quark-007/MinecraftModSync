@@ -19,7 +19,7 @@ const getFollowedProjectsModrinth = async () => {
 
   if (!ModsConfig.modrinthUserId) {
     console.error('Modrinth UserId not defined in Config');
-    return;
+    return [];
   }
 
   let res;
@@ -31,13 +31,15 @@ const getFollowedProjectsModrinth = async () => {
     );
   } catch (e) {
     console.log('Verify User ID');
-    return;
+    return [];
   }
 
   const follows = res?.data;
-  return follows
-    .filter((o) => o.project_type === 'mod')
-    .map(({ id, slug }) => ({ Mod_Name: slug, Project_ID: id }));
+  return (
+    follows
+      ?.filter((o) => o.project_type === 'mod')
+      ?.map(({ id, slug }) => ({ Mod_Name: slug, Project_ID: id })) || []
+  );
 };
 
 /**
@@ -45,9 +47,9 @@ const getFollowedProjectsModrinth = async () => {
  *
  * Collection List only contains list of project_ids
  *
- * To get the data like slug, it makes another api call
+ * Fetches project details in batch via /v2/projects endpoint
  */
-const getCollectionProjects = async (environment) => {
+const getCollectionProjects = async (environment = 'client') => {
   let res;
 
   try {
@@ -57,22 +59,28 @@ const getCollectionProjects = async (environment) => {
   } catch (e) {
     // console.error(err.message); // For debugging purposes
     console.error('Verify modrinth Collection ID');
-    return;
+    return [];
   }
+
   const projects = res?.data?.projects;
-  let collectionList = [];
+  if (!projects || projects.length === 0) {
+    return [];
+  }
 
-  // Map over the projects array and create an array of promises
-  const promises = projects.map(async (p) => {
-    const projectData = await axios.get(`${MODRINTH_BASE_URL_V2}/project/${p}`);
-    const { id, slug } = projectData?.data;
-    collectionList.push({ Mod_Name: slug, Project_ID: id });
-  });
-
-  // Wait for all promises to resolve
-  await Promise.all(promises);
-
-  return collectionList;
+  try {
+    const projectData = await axios.get(
+      `${MODRINTH_BASE_URL_V2}/projects?ids=${encodeURIComponent(JSON.stringify(projects))}`
+    );
+    return (
+      projectData?.data?.map(({ id, slug }) => ({
+        Mod_Name: slug,
+        Project_ID: id,
+      })) || []
+    );
+  } catch (e) {
+    console.error('Failed to fetch project details from Modrinth:', e.message);
+    return [];
+  }
 };
 
 const logFollowedProjects = async () => {
@@ -81,7 +89,7 @@ const logFollowedProjects = async () => {
 };
 
 const logCollectionProjects = async () => {
-  const followsModrinth = await getCollectionProjects();
+  const followsModrinth = await getCollectionProjects('client');
   console.log(followsModrinth);
 };
 
